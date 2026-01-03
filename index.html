@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,32 +8,450 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #fdfcf9; --card: #ffffff; --text: #3d3d3d; --border: #f0ede5; --cell: #f7f6f2; }
-        [data-theme="dark"] { --bg: #141414; --card: #1c1c1c; --text: #e2e2e2; --border: #2a2a2a; --cell: #222222; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; transition: 0.4s; }
-        .container { background: var(--card); padding: 2.5rem; border-radius: 40px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.03); border: 1px solid var(--border); text-align: center; position: relative; }
-        h2 { font-weight: 200; letter-spacing: 5px; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 2rem; opacity: 0.7; }
-        .block { background: var(--cell); padding: 20px; border-radius: 28px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.4; margin-bottom: 12px; display: block; text-align: left; }
-        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .btn-opt { padding: 10px; border: 1px solid var(--border); background: var(--card); border-radius: 14px; cursor: pointer; font-size: 0.7rem; color: var(--text); flex: 1 1 auto; transition: 0.2s; }
-        .btn-opt.active { background: var(--text); color: var(--card); }
-        .panel { display: none; padding-top: 20px; }
-        .shape-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
-        .shape-item { aspect-ratio: 1; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; background: var(--card); }
-        .shape-item.active { background: var(--text); color: var(--card); }
-        .color-gallery { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-        .color-dot { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
-        .color-dot.selected { border-color: var(--text); transform: scale(1.1); }
-        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 2rem 0; position: relative; }
-        .cell { aspect-ratio: 1; background: var(--cell); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; cursor: pointer; border: 1px solid var(--border); }
-        #win-line { position: absolute; height: 4px; border-radius: 10px; display: none; z-index: 10; pointer-events: none; }
-        .main-btn { width: 100%; padding: 20px; border: none; border-radius: 25px; background: var(--text); color: var(--card); font-weight: 700; cursor: pointer; letter-spacing: 2px; }
-        .share-url { font-size: 0.65rem; background: var(--bg); padding: 12px; border-radius: 15px; word-break: break-all; margin-top: 10px; display: none; border: 1px dashed var(--border); }
-        .theme-ico { position: absolute; top: 25px; right: 25px; cursor: pointer; opacity: 0.5; }
-        .expand-btn { width: 100%; padding: 12px; margin-top: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 15px; cursor: pointer; font-size: 0.7rem; color: #999; }
+        :root {
+            --bg: #fdfcf9;
+            --card: #ffffff;
+            --text: #3d3d3d;
+            --border: #f0ede5;
+            --cell: #f7f6f2;
+        }
+
+        [data-theme="dark"] {
+            --bg: #141414;
+            --card: #1c1c1c;
+            --text: #e2e2e2;
+            --border: #2a2a2a;
+            --cell: #222222;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: 0.4s;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 40px;
+            width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+        }
+
+        h2 {
+            font-weight: 200;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            opacity: 0.7;
+        }
+
+        .block {
+            background: var(--cell);
+            padding: 20px;
+            border-radius: 28px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.4;
+            margin-bottom: 12px;
+            display: block;
+            text-align: left;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-opt {
+            padding: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: var(--text);
+            flex: 1 1 auto;
+            transition: 0.2s;
+        }
+
+        .btn-opt.active {
+            background: var(--text);
+            color: var(--card);
+        }
+
+        .panel {
+            display: none;
+            padding-top: 20px;
+        }
+
+        .shape-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .shape-item {
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            background: var(--card);
+            transition: 0.2s;
+        }
+
+        .shape-item:hover {
+            border-color: #ddd;
+        }
+
+        .shape-item.active {
+            background: var(--text);
+            color: var(--card);
+            border-color: var(--text);
+        }
+
+        .shape-gallery {
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .gallery-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .feat-symbols {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .emoji-item {
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.4rem;
+            background: var(--card);
+            transition: 0.2s;
+        }
+
+        .emoji-item:hover {
+            transform: translateY(-2px);
+            border-color: #ddd;
+        }
+
+        .emoji-item.active {
+            background: #f0f0f0;
+            border-color: var(--text);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .custom-emoji-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .custom-input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .custom-btn {
+            padding: 0 20px;
+            border: none;
+            border-radius: 12px;
+            background: var(--text);
+            color: var(--card);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .color-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .color-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .color-dot.selected {
+            border-color: var(--text);
+            transform: scale(1.2);
+        }
+
+        .palette-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0 10px;
+        }
+
+        .pastel-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .brush-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: var(--text);
+            opacity: 0.6;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brush-btn:hover {
+            opacity: 1;
+            background: var(--bg);
+            border-color: #ccc;
+        }
+
+        .color-gallery {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 15px;
+            background: var(--bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+
+        .color-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .color-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .color-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .color-dot.selected {
+            border-color: var(--text);
+            transform: scale(1.2);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: var(--cell);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        #win-line {
+            position: absolute;
+            height: 10px;
+            border-radius: 50px;
+            display: none;
+            z-index: 10;
+            pointer-events: none;
+            transform-origin: left center;
+            transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0.9;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes winPulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.02);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+
+        .cell.win {
+            background: var(--text) !important;
+            color: var(--card) !important;
+            animation: winPulse 1.2s ease-in-out infinite;
+            border: none;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cell.last-move {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cell.win {
+            background: var(--text) !important;
+            color: var(--card) !important;
+            transform: scale(0.95);
+            transition: 0.3s;
+        }
+
+
+        .main-btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 25px;
+            background: var(--text);
+            color: var(--card);
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        .share-url {
+            font-size: 0.65rem;
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 15px;
+            word-break: break-all;
+            margin-top: 10px;
+            display: none;
+            border: 1px dashed var(--border);
+        }
+
+        .theme-ico {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        .expand-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #999;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container" id="menu">
@@ -52,16 +471,42 @@
         <div class="block" id="ia-config">
             <span class="label">Dificultad IA</span>
             <div class="btn-row">
-                <button class="btn-opt" id="dif1" onclick="cfg('d','1')">Fácil</button>
-                <button class="btn-opt" id="dif5" onclick="cfg('d','5')">Imbatible</button>
+                <button class="btn-opt" id="dif0" onclick="cfg('d','0')" style="font-size: 0.6rem;">Bebé</button>
+                <button class="btn-opt" id="dif1" onclick="cfg('d','1')" style="font-size: 0.6rem;">Fácil</button>
+                <button class="btn-opt" id="dif2" onclick="cfg('d','2')" style="font-size: 0.6rem;">Normal</button>
+                <button class="btn-opt" id="dif3" onclick="cfg('d','3')" style="font-size: 0.6rem;">Difícil</button>
+                <button class="btn-opt" id="dif5" onclick="cfg('d','5')" style="font-size: 0.6rem;">Imposible</button>
             </div>
         </div>
 
         <div class="block">
-            <span class="label">Tu Estilo</span>
-            <button class="expand-btn" onclick="toggleP('p1')">Personalizar Ficha <span>+</span></button>
+            <span class="label">Estilo de Juego</span>
+            <button class="expand-btn" onclick="toggleP('p1')">Personalizar Fichas <span>+</span></button>
             <div id="p1" class="panel">
-                <div class="shape-grid" id="sh1"></div>
+                <div class="btn-row" style="margin-bottom: 20px;" id="p-selector">
+                    <button class="btn-opt active" id="selP1" onclick="selPlayer(1)">JUGADOR 1</button>
+                    <button class="btn-opt" id="selP2" onclick="selPlayer(2)">JUGADOR 2</button>
+                </div>
+
+                <span class="label">Símbolo de Ficha</span>
+                <div class="gallery-header">
+                    <div class="feat-symbols" id="feat-sh"></div>
+                    <button class="brush-btn" onclick="toggleFullShapes()">🔍 Galería</button>
+                </div>
+                <div class="shape-gallery" id="sh-gal"></div>
+
+                <span class="label">Tu Propia Ficha (Emoji/Letra)</span>
+                <div class="custom-emoji-box">
+                    <input type="text" id="cust-em" class="custom-input" placeholder="Pega un emoji o escribe"
+                        maxlength="2">
+                    <button class="custom-btn" onclick="setCustomEM()">USAR</button>
+                </div>
+
+                <span class="label">Color de Ficha</span>
+                <div class="palette-header">
+                    <div class="pastel-bar" id="pastels"></div>
+                    <button class="brush-btn" onclick="toggleFullPalette()">🎨 Paleta Pro</button>
+                </div>
                 <div class="color-gallery" id="gal1"></div>
             </div>
         </div>
@@ -73,9 +518,15 @@
         <div id="status" style="margin-bottom:20px; font-weight:200; letter-spacing:2px; font-size:0.8rem"></div>
         <div class="board" id="board">
             <div id="win-line"></div>
-            <div class="cell" data-i="0"></div><div class="cell" data-i="1"></div><div class="cell" data-i="2"></div>
-            <div class="cell" data-i="3"></div><div class="cell" data-i="4"></div><div class="cell" data-i="5"></div>
-            <div class="cell" data-i="6"></div><div class="cell" data-i="7"></div><div class="cell" data-i="8"></div>
+            <div class="cell" data-i="0"></div>
+            <div class="cell" data-i="1"></div>
+            <div class="cell" data-i="2"></div>
+            <div class="cell" data-i="3"></div>
+            <div class="cell" data-i="4"></div>
+            <div class="cell" data-i="5"></div>
+            <div class="cell" data-i="6"></div>
+            <div class="cell" data-i="7"></div>
+            <div class="cell" data-i="8"></div>
         </div>
         <button class="main-btn" onclick="reset()">REPETIR</button>
         <button class="expand-btn" onclick="location.href=location.pathname" style="border:none">VOLVER AL MENÚ</button>
@@ -95,17 +546,64 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const aestheticPalette = ['#E5D3C5', '#D4A373', '#A98467', '#6B705C', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#D8E2DC'];
-        const aestheticShapes = ['✦', '✿', '◈', '☼', '☁', '☾', '♥', '⚓', '☘', '❈'];
+        const colorStudio = [
+            { name: 'Rojos', colors: ['#991b1b', '#dc2626', '#ef4444', '#f87171', '#fca5a5'] },
+            { name: 'Azules', colors: ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'] },
+            { name: 'Verdes', colors: ['#065f46', '#059669', '#10b981', '#34d399', '#6ee7b7'] },
+            { name: 'Violetas', colors: ['#5b21b6', '#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd'] },
+            { name: 'Teals', colors: ['#0f766e', '#0d9488', '#14b8a6', '#2dd4bf', '#5eead4'] },
+            { name: 'Rosas', colors: ['#9d174d', '#db2777', '#ec4899', '#f472b6', '#f9a8d4'] },
+            { name: 'Cálidos', colors: ['#b45309', '#d97706', '#f59e0b', '#fbbf24', '#fcd34d'] }
+        ];
+        const defaultPastels = ['#fca5a5', '#93c5fd', '#6ee7b7', '#c4b5fd', '#5eead4', '#f9a8d4', '#fcd34d'];
+        const aestheticShapes = [
+            '✕', '◯', '▲', '◆', '✦', '★', '♥', '♣', '♠', '♦',
+            '☼', '☽', '☁', '❆', '✿', '❀', '❂', '❃', '❈', '❉',
+            '⚓', '⚔', '🛡', '🏹', '⚖', '⚗', '⚙', '⌘', '⌥', '⌂',
+            '⚡', '☄', '⛱', '⛲', '⛳', '⛴', '⛸', '⛷', '⛹', '🏋'
+        ];
+        const featuredShapes = ['✕', '◯', '▲', '✦', '★', '♥'];
 
-        let s = JSON.parse(localStorage.getItem('ttt_final_v1')) || { m:'IA', d:'5', t1:'✦', c1:'#D4A373', th:'light' };
+        let s = JSON.parse(localStorage.getItem('ttt_final_v1')) || {
+            m: 'IA', d: '5', th: 'light',
+            p1: { t: '✦', c: '#ef4444', cust: '' },
+            p2: { t: '◯', c: '#3b82f6', cust: '' }
+        };
+        // Migración simple si existía formato antiguo
+        if (!s.p1) {
+            s = { m: s.m, d: s.d, th: s.th, p1: { t: s.t1 || '✦', c: s.c1 || '#ef4444', cust: s.cust || '' }, p2: { t: '◯', c: '#3b82f6', cust: '' } };
+        }
+
+        let editingPlayer = 1;
         let grid = Array(9).fill("");
         let live = false;
         let turn = "P1";
-        let myRole = "P1"; 
+        let myRole = "P1";
         let salaID = new URLSearchParams(window.location.search).get('sala');
 
-        function cfg(k, v) { s[k] = v; localStorage.setItem('ttt_final_v1', JSON.stringify(s)); sync(); }
+        function cfg(k, v) {
+            if (k === 'm' || k === 'd' || k === 'th') s[k] = v;
+            else {
+                const p = editingPlayer === 1 ? s.p1 : s.p2;
+                p[k] = v;
+            }
+            localStorage.setItem('ttt_final_v1', JSON.stringify(s));
+            sync();
+        }
+
+        function selPlayer(num) {
+            editingPlayer = num;
+            const p1Btn = document.getElementById('selP1');
+            const p2Btn = document.getElementById('selP2');
+            p1Btn.classList.toggle('active', num === 1);
+            p2Btn.classList.toggle('active', num === 2);
+
+            p1Btn.innerText = "JUGADOR 1";
+            p2Btn.innerText = s.m === 'IA' ? "IA (P2)" : "JUGADOR 2";
+
+            sync();
+        }
+
         function toggleT() { s.th = s.th === 'dark' ? 'light' : 'dark'; cfg('th', s.th); }
         function toggleP(id) { const e = document.getElementById(id); e.style.display = e.style.display === 'block' ? 'none' : 'block'; }
 
@@ -114,42 +612,118 @@
             document.getElementById('mIA').classList.toggle('active', s.m === 'IA');
             document.getElementById('mAM').classList.toggle('active', s.m === 'AM');
             document.getElementById('mON').classList.toggle('active', s.m === 'ON');
+
+            // Mostrar selector en modo Amigos e IA
+            document.getElementById('p-selector').style.display = (s.m === 'AM' || s.m === 'IA') ? 'flex' : 'none';
+            // Solo mostrar link si estamos en Online y hay salaID
+            document.getElementById('share-box').style.display = (s.m === 'ON' && salaID) ? 'block' : 'none';
+
+            if (s.m === 'ON') editingPlayer = 1;
+
+            const p2Btn = document.getElementById('selP2');
+            if (p2Btn) p2Btn.innerText = s.m === 'IA' ? "IA (P2)" : "JUGADOR 2";
+
+            document.getElementById('dif0')?.classList.toggle('active', s.d === '0');
+            document.getElementById('dif1')?.classList.toggle('active', s.d === '1');
+            document.getElementById('dif2')?.classList.toggle('active', s.d === '2');
+            document.getElementById('dif3')?.classList.toggle('active', s.d === '3');
+            document.getElementById('dif5')?.classList.toggle('active', s.d === '5');
+
             document.getElementById('ia-config').style.display = s.m === 'IA' ? 'block' : 'none';
-            renderS(); renderG();
+
+            const p = editingPlayer === 1 ? s.p1 : s.p2;
+            document.getElementById('cust-em').value = p.cust || '';
+
+            renderS(); renderPastels(); renderG();
+        }
+
+        function toggleFullShapes() {
+            const gal = document.getElementById('sh-gal');
+            gal.style.display = (gal.style.display === 'grid') ? 'none' : 'grid';
+        }
+
+        function toggleFullPalette() {
+            const gal = document.getElementById('gal1');
+            gal.style.display = (gal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function renderPastels() {
+            const el = document.getElementById('pastels'); el.innerHTML = '';
+            const p = editingPlayer === 1 ? s.p1 : s.p2;
+            defaultPastels.forEach(c => {
+                const d = document.createElement('div');
+                d.className = `color-dot ${p.c === c ? 'selected' : ''}`;
+                d.style.background = c; d.onclick = () => cfg('c', c);
+                el.appendChild(d);
+            });
+        }
+
+        function setCustomEM() {
+            const val = document.getElementById('cust-em').value.trim();
+            if (val) {
+                const p = editingPlayer === 1 ? s.p1 : s.p2;
+                p.cust = val;
+                cfg('t', val);
+            }
         }
 
         function createOnline() {
             const id = Math.random().toString(36).substring(7);
             const url = window.location.origin + window.location.pathname + '?sala=' + id;
             document.getElementById('share-box').innerText = "Link de invitación: " + url;
-            document.getElementById('share-box').style.display = "block";
-            cfg('m', 'ON'); salaID = id;
+            salaID = id;
+            cfg('m', 'ON');
         }
 
         function renderS() {
-            const el = document.getElementById('sh1'); el.innerHTML = '';
+            const p = editingPlayer === 1 ? s.p1 : s.p2;
+            const feat = document.getElementById('feat-sh'); feat.innerHTML = '';
+            featuredShapes.forEach(f => {
+                const d = document.createElement('div');
+                d.className = `shape-item ${p.t === f ? 'active' : ''}`;
+                d.style.width = '35px';
+                d.innerText = f; d.onclick = () => cfg('t', f);
+                feat.appendChild(d);
+            });
+
+            const gal = document.getElementById('sh-gal'); gal.innerHTML = '';
             aestheticShapes.forEach(f => {
                 const d = document.createElement('div');
-                d.className = `shape-item ${s.t1 === f ? 'active' : ''}`;
-                d.innerText = f; d.onclick = () => cfg('t1', f);
-                el.appendChild(d);
+                d.className = `shape-item ${p.t === f ? 'active' : ''}`;
+                d.innerText = f; d.onclick = () => cfg('t', f);
+                gal.appendChild(d);
             });
         }
 
         function renderG() {
+            const p = editingPlayer === 1 ? s.p1 : s.p2;
             const el = document.getElementById('gal1'); el.innerHTML = '';
-            aestheticPalette.forEach(c => {
-                const d = document.createElement('div');
-                d.className = `color-dot ${s.c1 === c ? 'selected' : ''}`;
-                d.style.background = c; d.onclick = () => cfg('c1', c);
-                el.appendChild(d);
+            colorStudio.forEach(group => {
+                const gDiv = document.createElement('div');
+                gDiv.className = 'color-group';
+
+                const label = document.createElement('span');
+                label.style.cssText = 'font-size:0.5rem; width:45px; opacity:0.6; text-align:left';
+                label.innerText = group.name;
+                gDiv.appendChild(label);
+
+                group.colors.forEach(c => {
+                    const d = document.createElement('div');
+                    d.className = `color-dot ${p.c === c ? 'selected' : ''}`;
+                    d.style.background = c; d.onclick = () => cfg('c', c);
+                    gDiv.appendChild(d);
+                });
+                el.appendChild(gDiv);
             });
         }
 
         function start() {
-            document.getElementById('menu').style.display='none';
-            document.getElementById('game').style.display='block';
-            if (salaID) conectarFirebase(); else reset();
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            live = true;
+            grid = Array(9).fill("");
+            turn = "P1";
+            if (salaID) conectarFirebase(); else renderLocal();
         }
 
         function conectarFirebase() {
@@ -173,38 +747,195 @@
 
         function actualizarVisual(data) {
             document.querySelectorAll('.cell').forEach((c, i) => {
+                const marker = grid[i];
+                const oldText = c.innerText;
                 c.innerText = "";
-                if (grid[i] === "P1") { c.innerText = data.p1.t1; c.style.color = data.p1.c1; }
-                else if (grid[i] === "P2") { c.innerText = data.p2 ? data.p2.t1 : "⏳"; c.style.color = data.p2 ? data.p2.c1 : "#ccc"; }
+                if (marker === "P1") {
+                    c.innerText = data.p1.p1.t;
+                    c.style.color = data.p1.p1.c;
+                    if (oldText === "") c.classList.add('last-move'); else c.classList.remove('last-move');
+                }
+                else if (marker === "P2") {
+                    c.innerText = data.p2 ? data.p2.p2.t : "⏳";
+                    c.style.color = data.p2 ? data.p2.p2.c : "#ccc";
+                    if (oldText === "" && data.p2) c.classList.add('last-move'); else c.classList.remove('last-move');
+                }
             });
-            const actual = (turn === "P1") ? data.p1 : (data.p2 || {t1:"..."});
-            document.getElementById('status').innerText = `TURNO: ${actual.t1} ${turn === myRole ? '(TUYO)' : ''}`;
-            if (checkWin(grid)) { document.getElementById('status').innerText = "FIN DEL JUEGO"; live = false; }
+            const actualObj = (turn === "P1") ? data.p1.p1 : (data.p2 ? data.p2.p2 : { t: "..." });
+            document.getElementById('status').innerText = `TURNO: ${actualObj.t} ${turn === myRole ? '(TUYO)' : ''}`;
+
+            const winCombo = checkWin(grid);
+            if (winCombo) {
+                document.getElementById('status').innerText = "¡VICTORIA!";
+                drawWinLine(winCombo);
+                live = false;
+            }
         }
 
         document.querySelectorAll('.cell').forEach(cell => {
             cell.addEventListener('click', () => {
+                if (!live) return;
                 const i = cell.dataset.i;
                 if (grid[i] !== "") return;
-                if (salaID && turn === myRole) {
+
+                if (salaID) {
+                    if (turn !== myRole) return;
                     grid[i] = myRole;
                     db.ref('salas/' + salaID).update({ tablero: grid, turno: myRole === "P1" ? "P2" : "P1" });
-                } else if (!salaID) {
-                    // Lógica Local / IA (Simplificada para este ejemplo)
-                    grid[i] = "P1";
-                    renderLocal();
+                } else {
+                    // Lógica Local
+                    grid[i] = turn;
+                    if (checkWin(grid)) {
+                        renderLocal();
+                        const pWin = turn === "P1" ? s.p1 : s.p2;
+                        document.getElementById('status').innerText = `GANADOR: ${pWin.t}`;
+                        live = false;
+                        return;
+                    }
+                    if (grid.every(c => c !== "")) {
+                        renderLocal();
+                        document.getElementById('status').innerText = "EMPATE";
+                        live = false;
+                        return;
+                    }
+
+                    turn = turn === "P1" ? "P2" : "P1";
+
+                    if (s.m === 'IA' && turn === "P2") {
+                        renderLocal();
+                        setTimeout(iaMove, 500);
+                    } else {
+                        renderLocal();
+                    }
                 }
             });
         });
 
+        function iaMove() {
+            if (!live) return;
+            let available = grid.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            if (available.length === 0) return;
+
+            let move;
+            const prob = Math.random();
+            let clever = false;
+
+            // Determinar si esta jugada es "lista" basado en la dificultad
+            if (s.d === '5') clever = true; // Imposible
+            else if (s.d === '3') clever = prob < 0.85; // Difícil (85% lista)
+            else if (s.d === '2') clever = prob < 0.50; // Normal (50% lista)
+            else if (s.d === '1') clever = prob < 0.20; // Fácil (20% lista)
+            else clever = false; // Bebé (0% lista, puro azar)
+
+            if (clever) {
+                move = findBestMove();
+            } else {
+                move = available[Math.floor(Math.random() * available.length)];
+            }
+
+            grid[move] = "P2";
+            if (checkWin(grid)) {
+                document.getElementById('status').innerText = "GANÓ LA IA";
+                live = false;
+            } else if (grid.every(c => c !== "")) {
+                document.getElementById('status').innerText = "EMPATE";
+                live = false;
+            } else {
+                turn = "P1";
+            }
+            renderLocal();
+        }
+
+        function findBestMove() {
+            const combos = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+            // Intentar ganar
+            for (let c of combos) {
+                let counts = c.map(i => grid[i]);
+                if (counts.filter(v => v === "P2").length === 2 && counts.filter(v => v === "").length === 1) {
+                    return c[counts.indexOf("")];
+                }
+            }
+            // Bloquear
+            for (let c of combos) {
+                let counts = c.map(i => grid[i]);
+                if (counts.filter(v => v === "P1").length === 2 && counts.filter(v => v === "").length === 1) {
+                    return c[counts.indexOf("")];
+                }
+            }
+            // Centro
+            if (grid[4] === "") return 4;
+            // Azar
+            let available = grid.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
         function renderLocal() {
             document.querySelectorAll('.cell').forEach((c, i) => {
-                if (grid[i] === "P1") { c.innerText = s.t1; c.style.color = s.c1; }
+                const oldText = c.innerText;
+                c.classList.remove('win', 'last-move');
+                c.innerText = "";
+                if (grid[i] === "P1") {
+                    c.innerText = s.p1.t;
+                    c.style.color = s.p1.c;
+                    if (oldText === "") c.classList.add('last-move');
+                }
+                else if (grid[i] === "P2") {
+                    c.innerText = s.p2.t;
+                    c.style.color = s.p2.c;
+                    if (oldText === "") c.classList.add('last-move');
+                }
             });
+            const pActual = turn === "P1" ? s.p1 : s.p2;
+            document.getElementById('status').innerText = `TURNO: ${pActual.t}`;
+
+            const winCombo = checkWin(grid);
+            if (winCombo) {
+                drawWinLine(winCombo);
+            } else {
+                document.getElementById('win-line').style.display = 'none';
+            }
+        }
+
+        function drawWinLine(combo) {
+            const line = document.getElementById('win-line');
+            const cells = document.querySelectorAll('.cell');
+            const start = cells[combo[0]].getBoundingClientRect();
+            const end = cells[combo[2]].getBoundingClientRect();
+            const board = document.getElementById('board').getBoundingClientRect();
+
+            const x1 = start.left + start.width / 2 - board.left;
+            const y1 = start.top + start.height / 2 - board.top;
+            const x2 = end.left + end.width / 2 - board.left;
+            const y2 = end.top + end.height / 2 - board.top;
+
+            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            const padding = 35;
+            const dx = (x2 - x1) / dist;
+            const dy = (y2 - y1) / dist;
+            const xStart = x1 - dx * padding;
+            const yStart = y1 - dy * padding;
+            const newDist = dist + padding * 2;
+
+            const winColor = (grid[combo[0]] === "P1" ? s.p1.c : s.p2.c);
+            line.style.width = '0px';
+            line.style.left = xStart + 'px';
+            line.style.top = (yStart - 5) + 'px';
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.display = 'block';
+            line.style.background = winColor;
+            line.style.boxShadow = `0 0 20px ${winColor}, 0 0 40px ${winColor}88`;
+
+            setTimeout(() => {
+                line.style.width = newDist + 'px';
+            }, 10);
+
+            combo.forEach(idx => cells[idx].classList.add('win'));
         }
 
         function checkWin(b) {
-            const combos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            const combos = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
             return combos.find(c => b[c[0]] && b[c[0]] === b[c[1]] && b[c[0]] === b[c[2]]);
         }
 
@@ -217,4 +948,5 @@
         if (salaID) { document.getElementById('title').innerText = "SALA ONLINE"; start(); }
     </script>
 </body>
+
 </html>
