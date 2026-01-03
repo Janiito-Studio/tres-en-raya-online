@@ -428,6 +428,27 @@
             margin-top: 10px;
             display: none;
             border: 1px dashed var(--border);
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: var(--text);
+            color: var(--card);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
         }
 
         .theme-ico {
@@ -683,9 +704,26 @@
         function createOnline() {
             const id = Math.random().toString(36).substring(7);
             const url = window.location.origin + window.location.pathname + '?sala=' + id;
-            document.getElementById('share-box').innerText = "Link de invitación: " + url;
+            document.getElementById('share-box').innerHTML = `
+                <div style="opacity: 0.6; margin-bottom: 5px;">Link de invitación:</div>
+                <div id="url-txt" style="font-weight: 600; margin-bottom: 5px;">${url}</div>
+                <button class="copy-btn" id="cp-btn" onclick="copyLink('${url}')">Copiar Enlace</button>
+            `;
             salaID = id;
             cfg('m', 'ON');
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('cp-btn');
+                const old = btn.innerText;
+                btn.innerText = "¡COPIADO!";
+                btn.style.background = "#10b981";
+                setTimeout(() => {
+                    btn.innerText = old;
+                    btn.style.background = "";
+                }, 2000);
+            });
         }
 
         function renderS() {
@@ -964,4 +1002,3 @@
 </body>
 
 </html>
-
