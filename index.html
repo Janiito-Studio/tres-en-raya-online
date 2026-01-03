@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tres en Raya • Online Studio</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <style>
+        :root { --bg: #fdfcf9; --card: #ffffff; --text: #3d3d3d; --border: #f0ede5; --cell: #f7f6f2; }
+        [data-theme="dark"] { --bg: #141414; --card: #1c1c1c; --text: #e2e2e2; --border: #2a2a2a; --cell: #222222; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; transition: 0.4s; }
+        .container { background: var(--card); padding: 2.5rem; border-radius: 40px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.03); border: 1px solid var(--border); text-align: center; position: relative; }
+        h2 { font-weight: 200; letter-spacing: 5px; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 2rem; opacity: 0.7; }
+        .block { background: var(--cell); padding: 20px; border-radius: 28px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.4; margin-bottom: 12px; display: block; text-align: left; }
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .btn-opt { padding: 10px; border: 1px solid var(--border); background: var(--card); border-radius: 14px; cursor: pointer; font-size: 0.7rem; color: var(--text); flex: 1 1 auto; transition: 0.2s; }
+        .btn-opt.active { background: var(--text); color: var(--card); }
+        .panel { display: none; padding-top: 20px; }
+        .shape-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; }
+        .shape-item { aspect-ratio: 1; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; background: var(--card); }
+        .shape-item.active { background: var(--text); color: var(--card); }
+        .color-gallery { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+        .color-dot { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.selected { border-color: var(--text); transform: scale(1.1); }
+        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 2rem 0; position: relative; }
+        .cell { aspect-ratio: 1; background: var(--cell); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; cursor: pointer; border: 1px solid var(--border); }
+        #win-line { position: absolute; height: 4px; border-radius: 10px; display: none; z-index: 10; pointer-events: none; }
+        .main-btn { width: 100%; padding: 20px; border: none; border-radius: 25px; background: var(--text); color: var(--card); font-weight: 700; cursor: pointer; letter-spacing: 2px; }
+        .share-url { font-size: 0.65rem; background: var(--bg); padding: 12px; border-radius: 15px; word-break: break-all; margin-top: 10px; display: none; border: 1px dashed var(--border); }
+        .theme-ico { position: absolute; top: 25px; right: 25px; cursor: pointer; opacity: 0.5; }
+        .expand-btn { width: 100%; padding: 12px; margin-top: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 15px; cursor: pointer; font-size: 0.7rem; color: #999; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="menu">
+        <div class="theme-ico" onclick="toggleT()">🌓</div>
+        <h2>Tres en Raya</h2>
+
+        <div class="block">
+            <span class="label">Modo</span>
+            <div class="btn-row">
+                <button class="btn-opt" id="mIA" onclick="cfg('m','IA')">VS IA</button>
+                <button class="btn-opt" id="mAM" onclick="cfg('m','AM')">AMIGOS</button>
+                <button class="btn-opt" id="mON" onclick="createOnline()">ONLINE</button>
+            </div>
+            <div id="share-box" class="share-url"></div>
+        </div>
+
+        <div class="block" id="ia-config">
+            <span class="label">Dificultad IA</span>
+            <div class="btn-row">
+                <button class="btn-opt" id="dif1" onclick="cfg('d','1')">Fácil</button>
+                <button class="btn-opt" id="dif5" onclick="cfg('d','5')">Imbatible</button>
+            </div>
+        </div>
+
+        <div class="block">
+            <span class="label">Tu Estilo</span>
+            <button class="expand-btn" onclick="toggleP('p1')">Personalizar Ficha <span>+</span></button>
+            <div id="p1" class="panel">
+                <div class="shape-grid" id="sh1"></div>
+                <div class="color-gallery" id="gal1"></div>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="start()">INICIAR JUEGO</button>
+    </div>
+
+    <div class="container" id="game" style="display:none">
+        <div id="status" style="margin-bottom:20px; font-weight:200; letter-spacing:2px; font-size:0.8rem"></div>
+        <div class="board" id="board">
+            <div id="win-line"></div>
+            <div class="cell" data-i="0"></div><div class="cell" data-i="1"></div><div class="cell" data-i="2"></div>
+            <div class="cell" data-i="3"></div><div class="cell" data-i="4"></div><div class="cell" data-i="5"></div>
+            <div class="cell" data-i="6"></div><div class="cell" data-i="7"></div><div class="cell" data-i="8"></div>
+        </div>
+        <button class="main-btn" onclick="reset()">REPETIR</button>
+        <button class="expand-btn" onclick="location.href=location.pathname" style="border:none">VOLVER AL MENÚ</button>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN FIREBASE (Usando tus credenciales)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhw0XkApKqckG4hqfkEm6Zkyfz4wG4-K0",
+            authDomain: "en-raya-71ad8.firebaseapp.com",
+            databaseURL: "https://en-raya-71ad8-default-rtdb.firebaseio.com",
+            projectId: "en-raya-71ad8",
+            storageBucket: "en-raya-71ad8.firebasestorage.app",
+            messagingSenderId: "680061995774",
+            appId: "1:680061995774:web:286c0f3ef9b563dd23b3af"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const aestheticPalette = ['#E5D3C5', '#D4A373', '#A98467', '#6B705C', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#D8E2DC'];
+        const aestheticShapes = ['✦', '✿', '◈', '☼', '☁', '☾', '♥', '⚓', '☘', '❈'];
+
+        let s = JSON.parse(localStorage.getItem('ttt_final_v1')) || { m:'IA', d:'5', t1:'✦', c1:'#D4A373', th:'light' };
+        let grid = Array(9).fill("");
+        let live = false;
+        let turn = "P1";
+        let myRole = "P1"; 
+        let salaID = new URLSearchParams(window.location.search).get('sala');
+
+        function cfg(k, v) { s[k] = v; localStorage.setItem('ttt_final_v1', JSON.stringify(s)); sync(); }
+        function toggleT() { s.th = s.th === 'dark' ? 'light' : 'dark'; cfg('th', s.th); }
+        function toggleP(id) { const e = document.getElementById(id); e.style.display = e.style.display === 'block' ? 'none' : 'block'; }
+
+        function sync() {
+            document.body.dataset.theme = s.th;
+            document.getElementById('mIA').classList.toggle('active', s.m === 'IA');
+            document.getElementById('mAM').classList.toggle('active', s.m === 'AM');
+            document.getElementById('mON').classList.toggle('active', s.m === 'ON');
+            document.getElementById('ia-config').style.display = s.m === 'IA' ? 'block' : 'none';
+            renderS(); renderG();
+        }
+
+        function createOnline() {
+            const id = Math.random().toString(36).substring(7);
+            const url = window.location.origin + window.location.pathname + '?sala=' + id;
+            document.getElementById('share-box').innerText = "Link de invitación: " + url;
+            document.getElementById('share-box').style.display = "block";
+            cfg('m', 'ON'); salaID = id;
+        }
+
+        function renderS() {
+            const el = document.getElementById('sh1'); el.innerHTML = '';
+            aestheticShapes.forEach(f => {
+                const d = document.createElement('div');
+                d.className = `shape-item ${s.t1 === f ? 'active' : ''}`;
+                d.innerText = f; d.onclick = () => cfg('t1', f);
+                el.appendChild(d);
+            });
+        }
+
+        function renderG() {
+            const el = document.getElementById('gal1'); el.innerHTML = '';
+            aestheticPalette.forEach(c => {
+                const d = document.createElement('div');
+                d.className = `color-dot ${s.c1 === c ? 'selected' : ''}`;
+                d.style.background = c; d.onclick = () => cfg('c1', c);
+                el.appendChild(d);
+            });
+        }
+
+        function start() {
+            document.getElementById('menu').style.display='none';
+            document.getElementById('game').style.display='block';
+            if (salaID) conectarFirebase(); else reset();
+        }
+
+        function conectarFirebase() {
+            const ref = db.ref('salas/' + salaID);
+            ref.once('value', (snap) => {
+                if (!snap.exists()) {
+                    myRole = "P1";
+                    ref.set({ tablero: Array(9).fill(""), turno: "P1", p1: s });
+                } else {
+                    myRole = "P2";
+                    ref.update({ p2: s });
+                }
+            });
+            ref.on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                grid = data.tablero; turn = data.turno;
+                actualizarVisual(data);
+            });
+        }
+
+        function actualizarVisual(data) {
+            document.querySelectorAll('.cell').forEach((c, i) => {
+                c.innerText = "";
+                if (grid[i] === "P1") { c.innerText = data.p1.t1; c.style.color = data.p1.c1; }
+                else if (grid[i] === "P2") { c.innerText = data.p2 ? data.p2.t1 : "⏳"; c.style.color = data.p2 ? data.p2.c1 : "#ccc"; }
+            });
+            const actual = (turn === "P1") ? data.p1 : (data.p2 || {t1:"..."});
+            document.getElementById('status').innerText = `TURNO: ${actual.t1} ${turn === myRole ? '(TUYO)' : ''}`;
+            if (checkWin(grid)) { document.getElementById('status').innerText = "FIN DEL JUEGO"; live = false; }
+        }
+
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('click', () => {
+                const i = cell.dataset.i;
+                if (grid[i] !== "") return;
+                if (salaID && turn === myRole) {
+                    grid[i] = myRole;
+                    db.ref('salas/' + salaID).update({ tablero: grid, turno: myRole === "P1" ? "P2" : "P1" });
+                } else if (!salaID) {
+                    // Lógica Local / IA (Simplificada para este ejemplo)
+                    grid[i] = "P1";
+                    renderLocal();
+                }
+            });
+        });
+
+        function renderLocal() {
+            document.querySelectorAll('.cell').forEach((c, i) => {
+                if (grid[i] === "P1") { c.innerText = s.t1; c.style.color = s.c1; }
+            });
+        }
+
+        function checkWin(b) {
+            const combos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            return combos.find(c => b[c[0]] && b[c[0]] === b[c[1]] && b[c[0]] === b[c[2]]);
+        }
+
+        function reset() {
+            if (salaID) db.ref('salas/' + salaID).update({ tablero: Array(9).fill(""), turno: "P1" });
+            else location.reload();
+        }
+
+        sync();
+        if (salaID) { document.getElementById('title').innerText = "SALA ONLINE"; start(); }
+    </script>
+</body>
+</html>
