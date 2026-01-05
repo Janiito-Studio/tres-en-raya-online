@@ -451,12 +451,33 @@
             transform: scale(0.95);
         }
 
-        .theme-ico {
+        .theme-ico,
+        .lang-ico {
             position: absolute;
             top: 25px;
-            right: 25px;
             cursor: pointer;
             opacity: 0.5;
+            transition: 0.2s;
+            z-index: 100;
+        }
+
+        .theme-ico {
+            right: 25px;
+        }
+
+        .lang-ico {
+            right: 65px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--cell);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .theme-ico:hover,
+        .lang-ico:hover {
+            opacity: 1;
         }
 
         .expand-btn {
@@ -489,11 +510,12 @@
 <body>
 
     <div class="container" id="menu">
+        <div class="lang-ico" onclick="toggleL()" id="lang-btn">ES</div>
         <div class="theme-ico" onclick="toggleT()">🌓</div>
-        <h2>Tres en Raya</h2>
+        <h2 id="t-title">Tres en Raya</h2>
 
         <div class="block">
-            <span class="label">Modo</span>
+            <span class="label" id="t-mode">Modo</span>
             <div class="btn-row">
                 <button class="btn-opt" id="mIA" onclick="cfg('m','IA')">VS IA</button>
                 <button class="btn-opt" id="mAM" onclick="cfg('m','AM')">AMIGOS</button>
@@ -503,7 +525,7 @@
         </div>
 
         <div class="block" id="ia-config">
-            <span class="label">Dificultad IA</span>
+            <span class="label" id="t-ia-dif">Dificultad IA</span>
             <div class="btn-row">
                 <button class="btn-opt" id="dif0" onclick="cfg('d','0')" style="font-size: 0.6rem;">Bebé</button>
                 <button class="btn-opt" id="dif1" onclick="cfg('d','1')" style="font-size: 0.6rem;">Fácil</button>
@@ -514,38 +536,41 @@
         </div>
 
         <div class="block">
-            <span class="label">Estilo de Juego</span>
-            <button class="expand-btn" onclick="toggleP('p1')">Personalizar Fichas <span>+</span></button>
+            <span class="label" id="t-style">Estilo de Juego</span>
+            <button class="expand-btn" onclick="toggleP('p1')" id="t-cust-btn">Personalizar Fichas
+                <span>+</span></button>
             <div id="p1" class="panel">
                 <div class="btn-row" style="margin-bottom: 20px;" id="p-selector">
                     <button class="btn-opt active" id="selP1" onclick="selPlayer(1)">JUGADOR 1</button>
                     <button class="btn-opt" id="selP2" onclick="selPlayer(2)">JUGADOR 2</button>
                 </div>
 
-                <span class="label">Símbolo de Ficha</span>
+                <span class="label" id="t-sym-label">Símbolo de Ficha</span>
                 <div class="gallery-header">
                     <div class="feat-symbols" id="feat-sh"></div>
-                    <button class="brush-btn" onclick="toggleFullShapes()">🔍 Galería</button>
+                    <button class="brush-btn" onclick="toggleFullShapes()" id="t-gal-sh">🔍 Galería</button>
                 </div>
                 <div class="shape-gallery" id="sh-gal"></div>
 
-                <span class="label">Tu Propia Ficha (Emoji/Letra)</span>
+                <span class="label" id="t-cust-sym">Tu Propia Ficha (Emoji/Letra)</span>
                 <div class="custom-emoji-box">
                     <input type="text" id="cust-em" class="custom-input" placeholder="Pega un emoji o escribe"
                         maxlength="2">
-                    <button class="custom-btn" onclick="setCustomEM()">USAR</button>
+                    <button class="custom-btn" onclick="setCustomEM()" id="t-use-btn">USAR</button>
                 </div>
 
-                <span class="label">Color de Ficha</span>
+                <span class="label" id="t-col-label">Color de Ficha</span>
                 <div class="palette-header">
                     <div class="pastel-bar" id="pastels"></div>
-                    <button class="brush-btn" onclick="toggleFullPalette()">🎨 Paleta Pro</button>
+                    <button class="brush-btn" onclick="toggleFullPalette()" id="t-pal-pro">🎨 Paleta Pro</button>
                 </div>
                 <div class="color-gallery" id="gal1"></div>
             </div>
         </div>
 
-        <button class="main-btn" onclick="start()">INICIAR JUEGO</button>
+        <button class="main-btn" onclick="start()" id="t-start">INICIAR JUEGO</button>
+        <button class="expand-btn" onclick="window.open('https://janiito-studio.github.io/Janiito-Studio/', '_blank')"
+            style="border:none; margin-top:20px; opacity:0.6" id="t-more-games">VER MÁS JUEGOS</button>
     </div>
 
     <div class="container" id="game" style="display:none">
@@ -562,8 +587,9 @@
             <div class="cell" data-i="7"></div>
             <div class="cell" data-i="8"></div>
         </div>
-        <button class="main-btn" onclick="reset()">REPETIR</button>
-        <button class="expand-btn" onclick="location.href=location.pathname" style="border:none">VOLVER AL MENÚ</button>
+        <button class="main-btn" onclick="reset()" id="t-repeat">REPETIR</button>
+        <button class="expand-btn" onclick="location.href=location.pathname" style="border:none" id="t-back">VOLVER AL
+            MENÚ</button>
     </div>
 
     <script>
@@ -579,6 +605,39 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        const translations = {
+            ca: {
+                title: 'Tres en Ratlla', mode: 'Mode', vs_ia: 'VS IA', friends: 'AMICS', online: 'ONLINE',
+                ia_dif: 'Dificultat IA', baby: 'Bebè', easy: 'Fàcil', normal: 'Normal', hard: 'Difícil', impossible: 'Impossible',
+                style: 'Estil de Joc', cust_btn: 'Personalitzar Fitxes +', p1: 'JUGADOR 1', p2: 'JUGADOR 2', ai_p2: 'IA (P2)',
+                sym_label: 'Símbol de Fitxa', gal_sh: '🔍 Galeria', cust_sym: 'Tu Propia Fitxa (Emoji/Lletra)', placeholder: 'Enganxa un emoji...', use: 'USAR',
+                col_label: 'Color de Fitxa', pal_pro: '🎨 Paleta Pro', start: 'INICIAR JOC', turn: 'TORN:', yours: '(TEU)',
+                victory: '¡VICTÒRIA!', draw: 'EMPAT', winner: 'GUANYADOR:', ai_won: 'HA GUANYAT LA IA', repeat: 'TORNAR A COMENÇAR LA PARTIDA', back: 'TORNAR AL MENÚ',
+                invite: "Link d'invitació:", copy: 'Copiar Enllaç', copied: '¡COPIAT!',
+                created_by: 'Creat per janiito', more_games: 'MÉS JOCS'
+            },
+            es: {
+                title: 'Tres en Raya', mode: 'Modo', vs_ia: 'VS IA', friends: 'AMIGOS', online: 'ONLINE',
+                ia_dif: 'Dificultad IA', baby: 'Bebé', easy: 'Fácil', normal: 'Normal', hard: 'Difícil', impossible: 'Imposible',
+                style: 'Estilo de Juego', cust_btn: 'Personalizar Fichas +', p1: 'JUGADOR 1', p2: 'JUGADOR 2', ai_p2: 'IA (P2)',
+                sym_label: 'Símbolo de Ficha', gal_sh: '🔍 Galería', cust_sym: 'Tu Propia Ficha (Emoji/Letra)', placeholder: 'Pega un emoji...', use: 'USAR',
+                col_label: 'Color de Ficha', pal_pro: '🎨 Paleta Pro', start: 'INICIAR JUEGO', turn: 'TURNO:', yours: '(TUYO)',
+                victory: '¡VICTORIA!', draw: 'EMPATE', winner: 'GANADOR:', ai_won: 'GANÓ LA IA', repeat: 'VOLVER A COMENZAR LA PARTIDA', back: 'VOLVER AL MENÚ',
+                invite: 'Link de invitación:', copy: 'Copiar Enlace', copied: '¡COPIADO!',
+                created_by: 'Creado por janiito', more_games: 'VER MÁS JUEGOS'
+            },
+            en: {
+                title: 'Tic-Tac-Toe', mode: 'Mode', vs_ia: 'VS AI', friends: 'FRIENDS', online: 'ONLINE',
+                ia_dif: 'AI Difficulty', baby: 'Baby', easy: 'Easy', normal: 'Normal', hard: 'Hard', impossible: 'Impossible',
+                style: 'Game Style', cust_btn: 'Customize Pieces +', p1: 'PLAYER 1', p2: 'PLAYER 2', ai_p2: 'AI (P2)',
+                sym_label: 'Piece Symbol', gal_sh: '🔍 Gallery', cust_sym: 'Your Own Piece (Emoji/Letter)', placeholder: 'Paste an emoji...', use: 'USE',
+                col_label: 'Piece Color', pal_pro: '🎨 Pro Palette', start: 'START GAME', turn: 'TURN:', yours: '(YOURS)',
+                victory: 'VICTORY!', draw: 'DRAW', winner: 'WINNER:', ai_won: 'AI WON', repeat: 'RESTART THE GAME', back: 'BACK TO MENU',
+                invite: 'Invitation link:', copy: 'Copy Link', copied: 'COPIED!',
+                created_by: 'Created by janiito', more_games: 'MORE GAMES'
+            }
+        };
 
         const colorStudio = [
             { name: 'Rojos', colors: ['#991b1b', '#dc2626', '#ef4444', '#f87171', '#fca5a5'] },
@@ -599,13 +658,17 @@
         const featuredShapes = ['✕', '◯', '▲', '✦', '★', '♥'];
 
         let s = JSON.parse(localStorage.getItem('ttt_final_v1')) || {
-            m: 'IA', d: '5', th: 'light',
+            m: 'IA', d: '5', th: 'light', l: 'es',
             p1: { t: '✦', c: '#ef4444', cust: '' },
             p2: { t: '◯', c: '#3b82f6', cust: '' }
         };
         // Migración simple si existía formato antiguo
-        if (!s.p1) {
-            s = { m: s.m, d: s.d, th: s.th, p1: { t: s.t1 || '✦', c: s.c1 || '#ef4444', cust: s.cust || '' }, p2: { t: '◯', c: '#3b82f6', cust: '' } };
+        if (!s.p1 || !s.l) {
+            s = {
+                m: s.m || 'IA', d: s.d || '5', th: s.th || 'light', l: s.l || 'es',
+                p1: s.p1 || { t: s.t1 || '✦', c: s.c1 || '#ef4444', cust: s.cust || '' },
+                p2: s.p2 || { t: '◯', c: '#3b82f6', cust: '' }
+            };
         }
 
         let editingPlayer = 1;
@@ -616,7 +679,7 @@
         let salaID = new URLSearchParams(window.location.search).get('sala');
 
         function cfg(k, v) {
-            if (k === 'm' || k === 'd' || k === 'th') s[k] = v;
+            if (k === 'm' || k === 'd' || k === 'th' || k === 'l') s[k] = v;
             else {
                 const p = editingPlayer === 1 ? s.p1 : s.p2;
                 p[k] = v;
@@ -625,6 +688,14 @@
             sync();
         }
 
+        function toggleL() {
+            const langs = ['ca', 'es', 'en'];
+            const next = langs[(langs.indexOf(s.l) + 1) % langs.length];
+            cfg('l', next);
+        }
+
+        function t(key) { return translations[s.l][key] || key; }
+
         function selPlayer(num) {
             editingPlayer = num;
             const p1Btn = document.getElementById('selP1');
@@ -632,8 +703,8 @@
             p1Btn.classList.toggle('active', num === 1);
             p2Btn.classList.toggle('active', num === 2);
 
-            p1Btn.innerText = "JUGADOR 1";
-            p2Btn.innerText = s.m === 'IA' ? "IA (P2)" : "JUGADOR 2";
+            p1Btn.innerText = t('p1');
+            p2Btn.innerText = s.m === 'IA' ? t('ai_p2') : t('p2');
 
             sync();
         }
@@ -643,6 +714,37 @@
 
         function sync() {
             document.body.dataset.theme = s.th;
+            document.getElementById('lang-btn').innerText = s.l.toUpperCase();
+
+            // Textos dinámicos
+            document.getElementById('t-title').innerText = t('title');
+            document.getElementById('t-mode').innerText = t('mode');
+            document.getElementById('mIA').innerText = t('vs_ia');
+            document.getElementById('mAM').innerText = t('friends');
+            document.getElementById('mON').innerText = t('online');
+            document.getElementById('t-ia-dif').innerText = t('ia_dif');
+            document.getElementById('dif0').innerText = t('baby');
+            document.getElementById('dif1').innerText = t('easy');
+            document.getElementById('dif2').innerText = t('normal');
+            document.getElementById('dif3').innerText = t('hard');
+            document.getElementById('dif5').innerText = t('impossible');
+            document.getElementById('t-style').innerText = t('style');
+            document.getElementById('t-cust-btn').innerHTML = t('cust_btn').replace('+', '<span>+</span>');
+            document.getElementById('selP1').innerText = t('p1');
+            document.getElementById('selP2').innerText = s.m === 'IA' ? t('ai_p2') : t('p2');
+            document.getElementById('t-sym-label').innerText = t('sym_label');
+            document.getElementById('t-gal-sh').innerText = t('gal_sh');
+            document.getElementById('t-cust-sym').innerText = t('cust_sym');
+            document.getElementById('cust-em').placeholder = t('placeholder');
+            document.getElementById('t-use-btn').innerText = t('use');
+            document.getElementById('t-col-label').innerText = t('col_label');
+            document.getElementById('t-pal-pro').innerText = t('pal_pro');
+            document.getElementById('t-start').innerText = t('start');
+            document.getElementById('t-repeat').innerText = t('repeat');
+            document.getElementById('t-back').innerText = t('back');
+            document.getElementById('t-footer').innerText = t('created_by');
+            document.getElementById('t-more-games').innerText = t('more_games');
+
             document.getElementById('mIA').classList.toggle('active', s.m === 'IA');
             document.getElementById('mAM').classList.toggle('active', s.m === 'AM');
             document.getElementById('mON').classList.toggle('active', s.m === 'ON');
@@ -653,9 +755,6 @@
             document.getElementById('share-box').style.display = (s.m === 'ON' && salaID) ? 'block' : 'none';
 
             if (s.m === 'ON') editingPlayer = 1;
-
-            const p2Btn = document.getElementById('selP2');
-            if (p2Btn) p2Btn.innerText = s.m === 'IA' ? "IA (P2)" : "JUGADOR 2";
 
             document.getElementById('dif0')?.classList.toggle('active', s.d === '0');
             document.getElementById('dif1')?.classList.toggle('active', s.d === '1');
@@ -705,9 +804,9 @@
             const id = Math.random().toString(36).substring(7);
             const url = window.location.origin + window.location.pathname + '?sala=' + id;
             document.getElementById('share-box').innerHTML = `
-                <div style="opacity: 0.6; margin-bottom: 5px;">Link de invitación:</div>
+                <div style="opacity: 0.6; margin-bottom: 5px;">${t('invite')}</div>
                 <div id="url-txt" style="font-weight: 600; margin-bottom: 5px;">${url}</div>
-                <button class="copy-btn" id="cp-btn" onclick="copyLink('${url}')">Copiar Enlace</button>
+                <button class="copy-btn" id="cp-btn" onclick="copyLink('${url}')">${t('copy')}</button>
             `;
             salaID = id;
             cfg('m', 'ON');
@@ -717,7 +816,7 @@
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById('cp-btn');
                 const old = btn.innerText;
-                btn.innerText = "¡COPIADO!";
+                btn.innerText = t('copied');
                 btn.style.background = "#10b981";
                 setTimeout(() => {
                     btn.innerText = old;
@@ -813,11 +912,11 @@
                 }
             });
             const actualObj = (turn === "P1") ? data.p1.p1 : (data.p2 ? data.p2.p2 : { t: "..." });
-            document.getElementById('status').innerText = `TURNO: ${actualObj.t} ${turn === myRole ? '(TUYO)' : ''}`;
+            document.getElementById('status').innerText = `${t('turn')} ${actualObj.t} ${turn === myRole ? t('yours') : ''}`;
 
             const winCombo = checkWin(grid);
             if (winCombo) {
-                document.getElementById('status').innerText = "¡VICTORIA!";
+                document.getElementById('status').innerText = t('victory');
                 drawWinLine(winCombo);
                 live = false;
             }
@@ -839,13 +938,13 @@
                     if (checkWin(grid)) {
                         renderLocal();
                         const pWin = turn === "P1" ? s.p1 : s.p2;
-                        document.getElementById('status').innerText = `GANADOR: ${pWin.t}`;
+                        document.getElementById('status').innerText = `${t('winner')} ${pWin.t}`;
                         live = false;
                         return;
                     }
                     if (grid.every(c => c !== "")) {
                         renderLocal();
-                        document.getElementById('status').innerText = "EMPATE";
+                        document.getElementById('status').innerText = t('draw');
                         live = false;
                         return;
                     }
@@ -886,10 +985,10 @@
 
             grid[move] = "P2";
             if (checkWin(grid)) {
-                document.getElementById('status').innerText = "GANÓ LA IA";
+                document.getElementById('status').innerText = t('ai_won');
                 live = false;
             } else if (grid.every(c => c !== "")) {
-                document.getElementById('status').innerText = "EMPATE";
+                document.getElementById('status').innerText = t('draw');
                 live = false;
             } else {
                 turn = "P1";
@@ -937,7 +1036,7 @@
                 }
             });
             const pActual = turn === "P1" ? s.p1 : s.p2;
-            document.getElementById('status').innerText = `TURNO: ${pActual.t}`;
+            document.getElementById('status').innerText = `${t('turn')} ${pActual.t}`;
 
             const winCombo = checkWin(grid);
             if (winCombo) {
@@ -992,13 +1091,20 @@
 
         function reset() {
             if (salaID) db.ref('salas/' + salaID).update({ tablero: Array(9).fill(""), turno: "P1" });
-            else location.reload();
+            else {
+                grid = Array(9).fill("");
+                live = true;
+                turn = "P1";
+                document.getElementById('win-line').style.display = 'none';
+                document.querySelectorAll('.cell').forEach(c => c.classList.remove('win', 'last-move'));
+                renderLocal();
+            }
         }
 
         sync();
         if (salaID) { document.getElementById('title').innerText = "SALA ONLINE"; start(); }
     </script>
-    <footer>Creado por janiito</footer>
+    <footer id="t-footer">Creado por janiito</footer>
 </body>
 
 </html>
